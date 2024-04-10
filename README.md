@@ -8,7 +8,7 @@
 <img src="./images/intro_unimd.png" alt="intro_unimd" style="zoom:50%;" />
 
 ![network](./images/network.png)
-
+[arxiv](https://arxiv.org/abs/2404.04933)
 ## Introduction
 
 In this paper, we aim to investigate the potential synergy between TAD and MR. Firstly, we propose a unified architecture, termed Unified Moment Detection (UniMD), for both TAD and MR, as shown in Fig.1. It transforms the inputs of the two tasks, namely actions for TAD or events for MR, into a common embedding space, and utilizes two novel querydependent decoders to generate a uniform output of classification score and temporal segments, as shown in Fig.4. Secondly, we explore the efficacy of two task fusion learning approaches, pre-training and co-training, in order to enhance the mutual benefits between TAD and MR. Extensive experiments demonstrate that the proposed task fusion learning scheme enables the two tasks to help each other and outperform the separately trained counterparts.
