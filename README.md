@@ -43,7 +43,16 @@ We provide the video features of three paired datasets used in our experiments, 
 the code will be released soon
 
 ## Citation
-
+```
+@misc{zeng2024unimd,
+      title={UniMD: Towards Unifying Moment Retrieval and Temporal Action Detection}, 
+      author={Yingsen Zeng and Yujie Zhong and Chengjian Feng and Lin Ma},
+      year={2024},
+      eprint={2404.04933},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
 
 
 ## Acknowledgement
