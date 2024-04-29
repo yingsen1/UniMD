@@ -59,9 +59,9 @@ We provide the video features of three paired datasets used in our experiments, 
 - download the checkpoint and place it in *./checkpoint/individual/ego4d/*. For TAD task, make data_type=tad in shell script. For MR task, make data_type=mr. For both task simultaneously, make data_type=all.
 
 ```
-# inference. for tad: make data_type==tad; for mr: make data_type==mr
+# inference
 cd ./tools/
-sh run_predict_ego4d.sh
+sh run_predict_ego4d.sh     # for tad: make data_type=tad; for mr: make data_type=mr
 ```
 
 ### Charades & Charades-STA
@@ -76,9 +76,9 @@ sh run_predict_ego4d.sh
 * download the checkpoint and place it in *./checkpoint/individual/charades/*.
 
 ```
-# inference. for tad: make data_type==tad; for mr: make data_type==mr
+# inference
 cd ./tools/
-run_predict_charades.sh
+sh run_predict_charades.sh     # for tad: make data_type=tad; for mr: make data_type=mr
 ```
 
 ### ActivityNet & ActivityNet-Caption
@@ -91,9 +91,9 @@ run_predict_charades.sh
 * download the checkpoint and place it in *./checkpoint/individual/anet/*.
 
 ```
-# inference. for tad: make data_type==tad; for mr: make data_type==mr
+# inference
 cd ./tools/
-run_predict_anet.sh
+sh run_predict_anet.sh     # for tad: make data_type=tad; for mr: make data_type=mr
 ```
 
 
