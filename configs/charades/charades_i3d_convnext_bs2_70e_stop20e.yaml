@@ -1,0 +1,86 @@
+dataset_name: charades
+train_split: [ 'Train' ]
+val_split: [ 'Test' ]
+valid_type: charades
+model_name: "LocPointTransformerSyntheses"
+charades: {
+  train_json_file: ./docker/TAD/Charades/converted_anno/Charades_v1_train.json,
+  val_json_file: ./docker/TAD/Charades/converted_anno/Charades_v1_test.json,
+  train_sta_file: ./docker/TAD/Charades/converted_anno/charades_sta_train.json,
+  val_sta_file: ./docker/TAD/Charades/converted_anno/charades_sta_test.json,
+  tad_weights: ./docker/TAD/Charades/clip_feat/clip_query/tad_cls_weight_1template_noPrefix_157cls.npz,
+  mr_weights: ./docker/TAD/Charades/clip_feat/clip_query_mr,
+  clip_feats_dir: ./docker/TAD/Charades/clip_feat/clip_feats_24fps_stride4,
+  feat_folder: ./docker/TAD/Charades/i3d_feats/rgb_flow/,
+#  file_prefix: ~,
+  file_ext: _rgb_flow.npy,
+  num_classes: 157,
+  input_dim: 2048,
+  feat_stride: 4,
+  num_frames: 16,
+  # serve as data augmentation
+  trunc_thresh: 0.5,
+  crop_ratio: [ 0.9, 1.0 ],
+  max_seq_len: 288,
+
+  default_fps: "",
+  downsample_rate: 1,
+  # if true, force upsampling of the input features into a fixed size
+  # only used for ActivityNet
+  force_upsampling: False,
+}
+dataset: {
+  input_dim: 2048,
+  num_classes: 157,
+  max_seq_len: 288,
+}
+model: {
+  backbone_type: 'convnext_stage',
+  embd_kernel_size: 3,
+  max_buffer_len_factor: 6.0,
+  n_mha_win_size: -1,
+  head_with_ln: True,
+  fpn_type: bifpn_convnext,
+  # useful only when fpn_type==bifpn
+  fpn_layer: 3,
+  n_conv_group: 8,  # tuple(3) or number
+  fpn_kernel_size: 7,
+  convnext_depths: [ 1, 1, 1, 1, 1 ],
+  ###
+  task: tad,
+  cls_head_type: dot,
+  cls_head_fn: scale,
+  reg_head_type: one_head_multi,
+}
+opt: {
+  learning_rate: 0.0001,
+  epochs: 60,
+  weight_decay: 0.05,
+  warmup_epochs: 10,
+  early_stop_epochs: 20,
+}
+loader: {
+  batch_size: 2,
+}
+train_cfg: {
+  init_loss_norm: 100,
+  clip_grad_l2norm: 1.0,
+  cls_prior_prob: 0.01,
+  center_sample: radius,
+  center_sample_radius: 1.5,
+  loss_weight: 1.0, # on reg_loss, use -1 to enable auto balancing
+  tad_loss_weight: 3.0,
+  mr_loss_weight: 1.0,
+}
+test_cfg: {
+  voting_thresh: 0.7,
+  pre_nms_topk: 2000,
+  max_seg_num: 200,
+  min_score: 0.001,
+  # when using external scores, our model is generating "proposals"
+  # multiclass_nms: False,
+  # ext_score_file: ./data/thumos/annotations/thumos14_cls_scores.pkl,
+  # comment out L47-48 and uncomment L50 to disable score fusion
+  multiclass_nms: True,
+}
+output_folder: ./ckpt/

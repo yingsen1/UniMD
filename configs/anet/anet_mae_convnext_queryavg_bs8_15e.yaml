@@ -1,0 +1,90 @@
+dataset_name: anet_tad_mr
+train_split: [ 'training' ]
+val_split: [ 'validationV2' ]  # validationV1, validationV2
+valid_type: anet
+model_name: "LocPointTransformerSyntheses"
+anet: {
+  tad_json: ./docker/TAD/anet/anno/tal_data/anet_1.3/annotations/anet1.3_tsp_filtered.json,
+  mr_train_json: ./docker/TAD/anet/anno/captiondata/train_modified.json,
+  mr_val_json_1: ./docker/TAD/anet/anno/captiondata/val_1.json,
+  mr_val_json_2: ./docker/TAD/anet/anno/captiondata/val_2.json,
+  tad_weight: ./docker/TAD/anet/clip_txt_feat/tad/anet_tad_200cls_classifier.npz,
+  tad_weight_avg: True,
+  mr_weights: ./docker/TAD/anet/clip_txt_feat/mr,
+
+  clip_feats_dir: "",  # not use
+  feat_folder: ./docker/TAD/anet/feats/internvid/anet_mae_hugek700,
+  file_ext: .npy,
+  num_classes: 1,  # 200
+  input_dim: 1280,
+  #512 +768  +1024=1536  +1280=1792  1024
+  feat_stride: 16,
+  num_frames: 16,
+  default_fps: 30,
+  trunc_thresh: 0.5,
+  crop_ratio: [ 0.9, 1.0 ],
+  max_seq_len: 768,
+  downsample_rate: 1,
+  # only used for ActivityNet
+  force_upsampling: False,
+}
+dataset: {
+  input_dim: 1280,
+  num_classes: 1,
+  max_seq_len: 768,
+}
+
+model: {
+  ### convnext
+  backbone_type: 'convnext_stage',
+  embd_kernel_size: 3,
+  max_buffer_len_factor: 6.0,
+  n_mha_win_size: -1,
+  head_with_ln: True,
+  fpn_type: bifpn_convnext,
+  # useful only when fpn_type==bifpn
+  fpn_layer: 3,
+  n_conv_group: 8,  # tuple(3) or number
+  fpn_kernel_size: 7,
+  convnext_depths: [ 1, 1, 1, 1, 1 ],
+  ###
+  task: tad,
+  cls_head_type: dot,
+  cls_head_fn: scale,
+  reg_head_type: one_head_multi,
+}
+opt: {
+  learning_rate: 0.001,
+  epochs: 10,
+  weight_decay: 0.05,
+}
+loader: {
+  batch_size: 8,
+}
+train_cfg: {
+  init_loss_norm: 400,
+  clip_grad_l2norm: 1.0,
+  cls_prior_prob: 0.01,
+  center_sample: radius,
+  center_sample_radius: 1.5,
+  label_smoothing: 0.1,
+  loss_weight: 1.0,  # anet_i3d =2
+  tad_loss_weight: 3.0,
+  mr_loss_weight: 1.0,
+}
+
+# similar to THUMOS
+test_cfg: {
+  voting_thresh: 0.9,
+  pre_nms_topk: 2000,
+  # max of 100 predictions per video
+  max_seg_num: 100,
+  min_score: 0.001,
+  # score fusion
+  multiclass_nms: True,  # False
+  nms_sigma: 0.75,
+  # when set ext_score, num_classes need to be 1.
+  ext_score_file: ./docker/TAD/anet/anno/tal_data/anet_1.3/annotations/new_3ensemble_uniformerv2_large_only_global_anet_16x10x3.json,
+  duration_thresh: 0.1,
+}
+output_folder: ./ckpt/

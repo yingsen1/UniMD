@@ -1,0 +1,94 @@
+dataset_name: ego4d_tad_mr
+train_split: ['training']
+val_split: ['validation']
+test_split: ["test"]
+valid_type: ego4d
+model_name: LocPointTransformerSyntheses
+
+ego4d: {
+  # gt
+  train_mq_file: ./docker/TAD/Ego4d/annotations/Moment_query/jsons/clip_annotations_not_filter.json,  # include train val
+  test_mq_file: ./docker/TAD/Ego4d/annotations/Moment_query/jsons/clip_annotations_test_no_gt.json,
+  train_nlq_file: ./docker/TAD/Ego4d/annotations/natural_language_query/jsons/clip_annotations_not_filter.json,  # include train val
+  test_nlq_file: ./docker/TAD/Ego4d/annotations/natural_language_query/jsons/clip_annotations_test_no_gt.json,
+  mq_weights: ./docker/TAD/Ego4d/feats/sorted_clip_feats/mq_txt_feat/clip_txt_feats/ego4d_mq_classifier.npz,
+  nlq_weights: ./docker/TAD/Ego4d/feats/sorted_clip_feats/nlq_txt_feat/clip_txt_feats_no_short_filter,
+  clip_feats_dir: None,
+  mq_feat_folder: ./docker/TAD/Ego4d/feats/sorted_clip_feats/mq_videointern_verb/,
+  nlq_feat_folder: ./docker/TAD/Ego4d/feats/sorted_clip_feats/nlq_videointern_verb/,
+#  file_prefix: ~,
+  file_ext: .npy,
+  num_classes: 110,
+  input_dim: 1024,
+  feat_stride: 16,
+  num_frames: 16,
+  # serve as data augmentation
+  trunc_thresh: 0.5,
+  crop_ratio: [ 0.9, 1.0 ],
+  max_seq_len: 1024,
+
+  # from config.py:dataset
+  # temporal stride of the feats
+  # default fps, may vary across datasets; Set to none for read from json file
+  default_fps: "",
+  # downsampling rate of features, 1 to use original resolution
+  downsample_rate: 1,
+  # if true, force upsampling of the input features into a fixed size
+  # only used for ActivityNet
+  force_upsampling: False,
+}
+
+model: {
+  backbone_type: 'convnext_stage',
+  embd_kernel_size: 3,
+  max_buffer_len_factor: 6.0,
+  n_mha_win_size: -1,
+  head_with_ln: True,
+  fpn_type: bifpn_convnext,
+  # useful only when fpn_type==bifpn
+  fpn_layer: 3,
+  n_conv_group: 8,  # tuple(3) or number
+  fpn_kernel_size: 7,
+  convnext_depths: [ 1, 1, 1, 1, 1 ],
+  ###
+  task: tad,
+  cls_head_type: dot,
+  cls_head_fn: scale,
+  reg_head_type: one_head_multi,
+}
+
+dataset: {
+  input_dim: 1024,
+  num_classes: 110,
+  max_seq_len: 1024,
+}
+opt: {
+  learning_rate: 0.0001,
+  epochs: 30,  # defatult 5 warm up
+  weight_decay: 0.05,
+  early_stop_epochs: 15,
+}
+loader: {
+  batch_size: 2,
+}
+train_cfg: {
+  init_loss_norm: 100,
+  clip_grad_l2norm: 1.0,
+  cls_prior_prob: 0.01,
+  center_sample: radius,
+  center_sample_radius: 1.5,
+  dropout: 0.1,
+  droppath: 0.1,
+  loss_weight: 1.0, # on reg_loss, use -1 to enable auto balancing
+  tad_loss_weight: 3.0,
+  mr_loss_weight: 1.0,
+}
+test_cfg: {
+  pre_nms_topk: 5000,
+  max_seg_num: 2000,
+  min_score: 0.001,
+  nms_sigma: 0.9,
+  multiclass_nms: True,
+  voting_thresh: 0.95,
+}
+output_folder: ./ckpt/
