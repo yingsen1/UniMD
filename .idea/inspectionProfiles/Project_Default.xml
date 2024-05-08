@@ -1,0 +1,27 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="GrazieInspection" enabled="false" level="GRAMMAR_ERROR" enabled_by_default="false" />
+    <inspection_tool class="LanguageDetectionInspection" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="7">
+            <item index="0" class="java.lang.String" itemvalue="detectron2" />
+            <item index="1" class="java.lang.String" itemvalue="openvino-dev" />
+            <item index="2" class="java.lang.String" itemvalue="tensorflow" />
+            <item index="3" class="java.lang.String" itemvalue="tensorflowjs" />
+            <item index="4" class="java.lang.String" itemvalue="thop" />
+            <item index="5" class="java.lang.String" itemvalue="onnx-simplifier" />
+            <item index="6" class="java.lang.String" itemvalue="coremltools" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="SpellCheckingInspection" enabled="false" level="TYPO" enabled_by_default="false">
+      <option name="processCode" value="true" />
+      <option name="processLiterals" value="true" />
+      <option name="processComments" value="true" />
+    </inspection_tool>
+  </profile>
+</component>

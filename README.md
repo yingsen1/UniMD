@@ -5,12 +5,17 @@
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/unimd-towards-unifying-moment-retrieval-and/moment-retrieval-on-charades-sta)](https://paperswithcode.com/sota/moment-retrieval-on-charades-sta?p=unimd-towards-unifying-moment-retrieval-and)
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/unimd-towards-unifying-moment-retrieval-and/action-detection-on-charades)](https://paperswithcode.com/sota/action-detection-on-charades?p=unimd-towards-unifying-moment-retrieval-and)
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/unimd-towards-unifying-moment-retrieval-and/temporal-action-localization-on-activitynet)](https://paperswithcode.com/sota/temporal-action-localization-on-activitynet?p=unimd-towards-unifying-moment-retrieval-and)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/unimd-towards-unifying-moment-retrieval-and/natural-language-moment-retrieval-on)](https://paperswithcode.com/sota/natural-language-moment-retrieval-on?p=unimd-towards-unifying-moment-retrieval-and)
-[\[arxiv\]](https://arxiv.org/abs/2404.04933)
-<img src="/Users/wilsontsang/Downloads/unimd/images/intro_unimd.png" alt="intro_unimd" style="zoom:30%;" />
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/unimd-towards-unifying-moment-retrieval-and/natural-language-moment-retrieval-on)](https://paperswithcode.com/sota/natural-language-moment-retrieval-on?p=unimd-towards-unifying-moment-retrieval-and)  
 
-<img src="/Users/wilsontsang/Downloads/unimd/images/network.png" alt="network" style="zoom:50%;" />
+[\[arxiv\]](https://arxiv.org/abs/2404.04933)  
 
+<div align="center">
+  <img src="./images/intro_unimd.png" width="600px"/>
+</div>
+
+<div align="center">
+  <img src="./images/network.png" width="600px"/>
+</div>
 
 ## Introduction
 
