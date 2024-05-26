@@ -117,10 +117,16 @@ sh individual_train_ego4d_tad.sh
 
 ```
 cd ./tools/
-# forexample, co-train ego4d, run:
+# for example, co-train ego4d, run:
 sh cotrain_random_ego4d.sh
 ```
 
+- co-train (synchronized sampling)
+```
+cd ./tools/
+# for example, co-train ego4d, run:
+sh cotrain_sync_ego4d.sh
+```
 
 
 ## Citation

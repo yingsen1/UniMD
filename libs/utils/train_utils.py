@@ -544,6 +544,226 @@ def cotrain_random_one_epoch(
     return
 
 
+def cotrain_synchronized_one_epoch(
+        loaders,
+        model,
+        optimizer,
+        scheduler,
+        curr_epoch,
+        max_epoch,
+        model_ema=None,
+        clip_grad_l2norm=-1,
+        tb_writer=None,
+        print_freq=20,
+        tad_loss_weight=1.0,
+        mr_loss_weight=1.0,
+
+):
+    """Training the model for one epoch"""
+    # set up meters
+    batch_time = AverageMeter()
+    losses_tracker = {}
+    assert isinstance(loaders, list)  # include tad_loader, mr_loader, both_loader
+    assert len(loaders) == 3
+    tad_train_loader = loaders[0]
+    mr_train_loader = loaders[1]
+    both_train_loader = loaders[2]
+    # number of iterations per epoch
+    diff_iters = len(tad_train_loader)  # tad/mr loader only include the non-intersection part
+    both_iters = len(both_train_loader)  # both loader include the intersection part
+    num_iters = diff_iters + both_iters
+    print("num iters each epoch: %d" % num_iters)
+    # switch to train mode
+    model.train()
+
+    # main training loop
+    print("\n[Train]: Epoch {:d} started".format(curr_epoch))
+    start = time.time()
+    iter_tad_train, iter_mr_train = iter(tad_train_loader), iter(mr_train_loader)
+    iter_both_train = iter(both_train_loader)
+
+    # shuffle the loader(=tad_loader+both_loader)
+    random_list = list(range(num_iters))
+    random.shuffle(random_list)
+
+    for iter_idx, random_num in enumerate(random_list):
+        if random_num < both_iters:  # intersection part
+            batch_data = next(iter_both_train)
+        else:  # non-intersection part
+            batch_tad = next(iter_tad_train)
+            batch_mr = next(iter_mr_train)
+            batch_data = batch_tad + batch_mr
+        # combine together
+        video_list = []
+        tasks = []  # record task each video
+        valid_data_idx = []
+        for data_i in range(len(batch_data)):
+            one_video = dict()
+            one_tasks = []
+            tad_data = batch_data[data_i]["tad"]
+            mr_data = batch_data[data_i]["mr"]
+
+            if tad_data is not None and tad_data["segments"] is not None:
+                one_video["tad"] = tad_data
+                one_tasks.append("tad")
+            if mr_data is not None and mr_data["segments"] is not None:
+                one_video["mr"] = mr_data
+                one_tasks.append("mr")
+            if len(one_video):
+                valid_data_idx.append(data_i)
+                video_list.append(one_video)
+                tasks.append(one_tasks)
+            else:
+                pass
+
+        if len(video_list) <= 0:
+            print("warning: get no data, skip")
+            continue
+
+        optimizer.zero_grad(set_to_none=True)
+        # forward / backward the model
+        losses, fpn_cls_val, _, fpn_mask = model(video_list, tasks, curr_epoch, max_epoch)
+
+        tad_loss, mr_loss = 0, 0
+        if losses["tad"]:
+            tad_loss = losses["tad"]["final_loss"]
+        if losses["mr"]:
+            mr_loss = losses["mr"]["final_loss"]
+        backward_loss = tad_loss * tad_loss_weight + mr_loss * mr_loss_weight
+        backward_loss.backward()
+        # gradient cliping (to stabilize training if necessary)
+        if clip_grad_l2norm > 0.0:
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(),
+                clip_grad_l2norm
+            )
+        # step optimizer / scheduler
+        optimizer.step()
+        scheduler.step()
+
+        if model_ema is not None:
+            model_ema.update(model)
+
+        # printing (only check the stats when necessary to avoid extra cost)
+        if (iter_idx != 0) and (iter_idx % print_freq) == 0:
+            # measure elapsed time (sync all kernels)
+            torch.cuda.synchronize()
+            batch_time.update((time.time() - start) / print_freq)
+            start = time.time()
+
+            # track all losses
+            if losses["tad"]:
+                for key, value in losses["tad"].items():
+                    # init meter if necessary
+                    key = key + "_tad"
+                    if key not in losses_tracker:
+                        losses_tracker[key] = AverageMeter()
+                    # update
+                    losses_tracker[key].update(value.item())
+            if losses["mr"]:
+                for key, value in losses["mr"].items():
+                    # init meter if necessary
+                    key = key + "_mr"
+                    if key not in losses_tracker:
+                        losses_tracker[key] = AverageMeter()
+                    # update
+                    losses_tracker[key].update(value.item())
+
+            # log to tensor board
+            lr = scheduler.get_last_lr()[0]
+            global_step = curr_epoch * num_iters + iter_idx
+            if tb_writer is not None:
+                # learning rate (after stepping)
+                tb_writer.add_scalar(
+                    'train/learning_rate',
+                    lr,
+                    global_step
+                )
+                # all losses
+                tag_dict = {}
+                for key, value in losses_tracker.items():
+                    if "final_loss" not in key:
+                        # if key != "final_loss":
+                        tag_dict[key] = value.val
+                # tb_writer.add_scalars(
+                #     'train/all_losses',
+                #     tag_dict,
+                #     global_step
+                # )
+                if losses["tad"]:
+                    tb_writer.add_scalar(
+                        "train/cls_loss_tad",
+                        losses_tracker["cls_loss_tad"].val,
+                        global_step
+                    )
+                    tb_writer.add_scalar(
+                        "train/reg_loss_tad",
+                        losses_tracker["reg_loss_tad"].val,
+                        global_step
+                    )
+                    # final loss
+                    tb_writer.add_scalar(
+                        'train/final_loss_tad',
+                        losses_tracker['final_loss_tad'].val,
+                        global_step
+                    )
+                if losses["mr"]:
+                    tb_writer.add_scalar(
+                        "train/cls_loss_mr",
+                        losses_tracker["cls_loss_mr"].val,
+                        global_step
+                    )
+                    tb_writer.add_scalar(
+                        "train/reg_loss_mr",
+                        losses_tracker["reg_loss_mr"].val,
+                        global_step
+                    )
+                    # final loss
+                    tb_writer.add_scalar(
+                        'train/final_loss_mr',
+                        losses_tracker['final_loss_mr'].val,
+                        global_step
+                    )
+
+            # print to terminal
+            block1 = 'Epoch: [{:03d}][{:05d}/{:05d}]'.format(
+                curr_epoch, iter_idx, num_iters
+            )
+            block2 = 'Time {:.2f} ({:.2f})'.format(
+                batch_time.val, batch_time.avg
+            )
+            block3 = ""
+            for k, v in losses_tracker.items():
+                if "final_loss" not in k:
+                    continue
+                else:
+                    block3 += 'Loss {}{:.2f} ({:.2f})\n'.format(
+                        k,
+                        losses_tracker[k].val,
+                        losses_tracker[k].avg
+                    )
+            block4 = ''
+            for key, value in losses_tracker.items():
+                if "final_loss" in key:
+                    continue
+                block4 += '\t{:s} {:.2f} ({:.2f})'.format(
+                    key, value.val, value.avg
+                )
+
+            print('\t'.join([block1, block2, block3, block4]))
+
+        # clean calculate map
+        if losses["tad"]:
+            del losses["tad"]["final_loss"]
+        if losses["mr"]:
+            del losses["mr"]["final_loss"]
+
+    # finish up and print
+    lr = scheduler.get_last_lr()[0]
+    print("[Train]: Epoch {:d} finished with lr={:.8f}\n".format(curr_epoch, lr))
+    return
+
+
 def valid_one_epoch_charades(val_loader, model, curr_epoch, ext_score_file=None, evaluator=None, output_file=None,
                              tb_writer=None, print_freq=20, MR_GT_JSON="./data/charades/Charades_v1_test.csv"):
     """Test the model on the validation set"""

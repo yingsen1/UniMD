@@ -326,7 +326,7 @@ class ANetTadMrDataset(Dataset):
         feats /= feats.norm(dim=-1, keepdim=True)
         if self.tad_weight_avg:
             feats = feats.mean(dim=0, keepdims=True)
-            print("==TAD的分类器取平均", feats.shape)
+            print("==TAD classifier make average", feats.shape)
         return feats
 
     def get_classes(self):
