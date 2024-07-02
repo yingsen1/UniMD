@@ -1,4 +1,4 @@
-# UniMD: Towards Unifying Moment Retrieval and Temporal Action Detection
+# [ECCV2024] UniMD: Towards Unifying Moment Retrieval and Temporal Action Detection 
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/unimd-towards-unifying-moment-retrieval-and/natural-language-queries-on-ego4d)](https://paperswithcode.com/sota/natural-language-queries-on-ego4d?p=unimd-towards-unifying-moment-retrieval-and)
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/unimd-towards-unifying-moment-retrieval-and/moment-queries-on-ego4d)](https://paperswithcode.com/sota/moment-queries-on-ego4d?p=unimd-towards-unifying-moment-retrieval-and)
@@ -21,12 +21,13 @@
 
 In this paper, we aim to investigate the potential synergy between TAD and MR. Firstly, we propose a unified architecture, termed Unified Moment Detection (UniMD), for both TAD and MR, as shown in Fig.1. It transforms the inputs of the two tasks, namely actions for TAD or events for MR, into a common embedding space, and utilizes two novel querydependent decoders to generate a uniform output of classification score and temporal segments, as shown in Fig.4. Secondly, we explore the efficacy of two task fusion learning approaches, pre-training and co-training, in order to enhance the mutual benefits between TAD and MR. Extensive experiments demonstrate that the proposed task fusion learning scheme enables the two tasks to help each other and outperform the separately trained counterparts.
 
-This repository will contain the code for UniMD and the video features used in the paper. Our code is built upon the codebase from [actionformer](https://github.com/happyharrycn/actionformer_release).
+This repository will contain the code for UniMD and the video features used in the paper. Our code is built upon the codebase from [actionformer](https://github.com/happyharrycn/actionformer_release).  Our paper is accepted to ECCV 2024.  
 
 
 
 ## Changelog
 
+* 02/07/2024: the paper is accepted to ECCV 2024.
 * 29/04/2024: release the inference & train code.
 * 02/04/2024: we create the code repo and release the video features, text embeddings and groundtruth used in the paper.
 
